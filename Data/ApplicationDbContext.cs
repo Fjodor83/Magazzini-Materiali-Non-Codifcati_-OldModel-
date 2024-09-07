@@ -15,12 +15,12 @@ namespace MagazziniMaterialiAPI.Data
         public DbSet<Materiale> Materiali { get; set; }
         public DbSet<Classificazione> Classificazioni { get; set; }
         public DbSet<MaterialeImmagine> MaterialeImmagini { get; set; }
-        public DbSet<Utente> Utenti { get; set; }
+      
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            // Qui puoi aggiungere configurazioni aggiuntive se necessario
+            
         }
     } 
 

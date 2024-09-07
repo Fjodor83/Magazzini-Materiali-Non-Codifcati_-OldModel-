@@ -58,7 +58,7 @@ namespace MagazziniMaterialiAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CodiceMagazzino = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NomeMagazzino = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Descrizione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DescrizioneMagazzino = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -192,15 +192,13 @@ namespace MagazziniMaterialiAPI.Migrations
                 name: "Classificazioni",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CodiceClassificazione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CodiceClassificazione = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     NomeClassificazione = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MaterialeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Classificazioni", x => x.Id);
+                    table.PrimaryKey("PK_Classificazioni", x => x.CodiceClassificazione);
                     table.ForeignKey(
                         name: "FK_Classificazioni_Materiali_MaterialeId",
                         column: x => x.MaterialeId,
@@ -209,7 +207,7 @@ namespace MagazziniMaterialiAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MaterialeImmagine",
+                name: "MaterialeImmagini",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -220,9 +218,9 @@ namespace MagazziniMaterialiAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MaterialeImmagine", x => x.Id);
+                    table.PrimaryKey("PK_MaterialeImmagini", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MaterialeImmagine_Materiali_MaterialeId",
+                        name: "FK_MaterialeImmagini_Materiali_MaterialeId",
                         column: x => x.MaterialeId,
                         principalTable: "Materiali",
                         principalColumn: "Id");
@@ -273,8 +271,8 @@ namespace MagazziniMaterialiAPI.Migrations
                 column: "MaterialeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MaterialeImmagine_MaterialeId",
-                table: "MaterialeImmagine",
+                name: "IX_MaterialeImmagini_MaterialeId",
+                table: "MaterialeImmagini",
                 column: "MaterialeId");
         }
 
@@ -303,7 +301,7 @@ namespace MagazziniMaterialiAPI.Migrations
                 name: "Magazzini");
 
             migrationBuilder.DropTable(
-                name: "MaterialeImmagine");
+                name: "MaterialeImmagini");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

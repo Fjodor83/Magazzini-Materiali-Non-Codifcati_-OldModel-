@@ -24,15 +24,8 @@ namespace MagazziniMaterialiAPI.Migrations
 
             modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Classificazione", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
                     b.Property<string>("CodiceClassificazione")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("MaterialeId")
                         .HasColumnType("int");
@@ -41,7 +34,7 @@ namespace MagazziniMaterialiAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("CodiceClassificazione");
 
                     b.HasIndex("MaterialeId");
 
@@ -60,7 +53,7 @@ namespace MagazziniMaterialiAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Descrizione")
+                    b.Property<string>("DescrizioneMagazzino")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -194,11 +187,6 @@ namespace MagazziniMaterialiAPI.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -250,10 +238,6 @@ namespace MagazziniMaterialiAPI.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasDiscriminator().HasValue("IdentityUser");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -335,24 +319,6 @@ namespace MagazziniMaterialiAPI.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Utente", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
-
-                    b.Property<string>("Cognome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Ruolo")
-                        .HasColumnType("int");
-
-                    b.HasDiscriminator().HasValue("Utente");
                 });
 
             modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Classificazione", b =>

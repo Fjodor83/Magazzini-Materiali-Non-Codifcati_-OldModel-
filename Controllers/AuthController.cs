@@ -1,94 +1,107 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using MagazziniMaterialiAPI.Data;
-using MagazziniMaterialiAPI.Models;
-using MagazziniMaterialiAPI.Models.Entity;
-using MagazziniGessi.Api.Models;
+﻿using MagazziniMaterialiAPI.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AccountController : ControllerBase
     {
-        private readonly UserManager<Utente> _userManager;
-        private readonly SignInManager<Utente> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public AuthController(
-            UserManager<Utente> userManager,
-            SignInManager<Utente> signInManager,
-            IConfiguration configuration)
+        public AccountController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
+            _roleManager = roleManager;
             _configuration = configuration;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
-            var user = new Utente
-            {
-                UserName = model.Email,
-                Email = model.Email,
-                Nome = model.FirstName,
-                Cognome = model.LastName,
-                Ruolo = model.Ruolo
-            };
-
+            var user = new IdentityUser { UserName = model.Email, Email = model.Email };
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                return Ok(new { Message = "Utente registrato con successo" });
+                //await _userManager.AddToRoleAsync(user, "User");
+                return Ok(new { message = "User registered successfully" });
             }
 
-            return BadRequest(new { Errors = result.Errors });
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-
-            if (result.Succeeded)
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                var token = GenerateJwtToken(user);
+                var userRoles = await _userManager.GetRolesAsync(user);
 
-                return Ok(new { Token = token });
+                var authClaims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
+
+                authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+                var token = new JwtSecurityToken(
+                    issuer: _configuration["Jwt:Issuer"],
+                    expires: DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:ExpiryMinutes"]!)),
+                    claims: authClaims,
+                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)),
+                    SecurityAlgorithms.HmacSha256));
+
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
 
-            return Unauthorized(new { Message = "Login fallito" });
+            return Unauthorized();
         }
 
-        private string GenerateJwtToken(Utente user)
+        [HttpPost("add-role")]
+        public async Task<IActionResult> AddRole([FromBody] string role)
         {
-            var claims = new List<Claim>
+            if (!await _roleManager.RoleExistsAsync(role))
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
+                var result = await _roleManager.CreateAsync(new IdentityRole(role));
+                if (result.Succeeded)
+                {
+                    return Ok(new { message = "Role added successfully" });
+                }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["JwtExpireDays"]));
+                return BadRequest(result.Errors);
+            }
 
-            var token = new JwtSecurityToken(
-                _configuration["JwtIssuer"],
-                _configuration["JwtIssuer"],
-                claims,
-                expires: expires,
-                signingCredentials: creds
-            );
+            return BadRequest("Role already exists");
+        }
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+        [HttpPost("assign-role")]
+        public async Task<IActionResult> AssignRole([FromBody] UserRole model)
+        {
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, model.Role);
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Role assigned successfully" });
+            }
+
+            return BadRequest(result.Errors);
         }
     }
 }

@@ -7,22 +7,29 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MagazziniMaterialiAPI.Data;
 using MagazziniMaterialiAPI.Models.Entity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MagazzinoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+       
 
         public MagazzinoController(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        
+
         // GET: api/Magazzino
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Magazzino>>> GetMagazzini()
         {
             return await _context.Magazzini.ToListAsync();
@@ -30,6 +37,7 @@ namespace MagazziniMaterialiAPI.Controllers
 
         // GET: api/Magazzino/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Magazzino>> GetMagazzino(int id)
         {
             var magazzino = await _context.Magazzini.FindAsync(id);
@@ -45,6 +53,7 @@ namespace MagazziniMaterialiAPI.Controllers
         // PUT: api/Magazzino/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutMagazzino(int id, Magazzino magazzino)
         {
             if (id != magazzino.Id)
@@ -76,6 +85,7 @@ namespace MagazziniMaterialiAPI.Controllers
         // POST: api/Magazzino
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles ="Admin")]
         public async Task<ActionResult<Magazzino>> PostMagazzino(Magazzino magazzino)
         {
             _context.Magazzini.Add(magazzino);
@@ -86,6 +96,8 @@ namespace MagazziniMaterialiAPI.Controllers
 
         // DELETE: api/Magazzino/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> DeleteMagazzino(int id)
         {
             var magazzino = await _context.Magazzini.FindAsync(id);
