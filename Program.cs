@@ -1,4 +1,6 @@
 using MagazziniMaterialiAPI.Data;
+using MagazziniMaterialiAPI.Repositories;
+using MagazziniMaterialiAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Aggiungi il servizio per le etichette
+builder.Services.AddScoped<EtichettaService>();
+builder.Services.AddScoped<IMaterialeRepository, MaterialeRepository>();
 
 builder.Services.AddSwaggerGen(c =>
 {
