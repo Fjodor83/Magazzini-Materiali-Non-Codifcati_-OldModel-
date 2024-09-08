@@ -7,6 +7,8 @@ using QRCoder;
 using MagazziniMaterialiAPI.Models.Entity;
 using MagazziniMaterialiAPI.Repositories;
 using MagazziniMaterialiAPI.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
@@ -16,65 +18,127 @@ namespace MagazziniMaterialiAPI.Controllers
     {
         private readonly EtichettaService _etichettaService;
         private readonly IMaterialeRepository _materialeRepository;
+        private readonly ILogger<MaterialeController> _logger;
 
-        public MaterialeController(EtichettaService etichettaService, IMaterialeRepository materialeRepository)
+        public MaterialeController(EtichettaService etichettaService, IMaterialeRepository materialeRepository, ILogger<MaterialeController> logger)
         {
-            _etichettaService = etichettaService;
-            _materialeRepository = materialeRepository;
+            _etichettaService = etichettaService ?? throw new ArgumentNullException(nameof(etichettaService));
+            _materialeRepository = materialeRepository ?? throw new ArgumentNullException(nameof(materialeRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // Creazione di un nuovo materiale con QR Code
-        [HttpPost("crea-materiale")]
-        public IActionResult CreaMateriale([FromBody] Materiale nuovoMateriale)
+        [HttpGet]
+        public ActionResult<IEnumerable<Materiale>> GetListaMateriali()
+        {
+            try
+            {
+                var materiali = _materialeRepository.GetAll();
+                return Ok(materiali);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero della lista dei materiali");
+                return StatusCode(500, "Si è verificato un errore interno durante il recupero della lista dei materiali.");
+            }
+        }
+
+        [HttpPost]
+        public ActionResult<Materiale> CreaMateriale([FromBody] Materiale nuovoMateriale)
         {
             if (nuovoMateriale == null)
             {
-                return BadRequest("Materiale non valido.");
+                return BadRequest("Il materiale fornito non è valido.");
             }
 
-            // Genera il codice QR
-            string qrCodeData = GeneraCodiceQR(nuovoMateriale.CodiceMateriale);
-
-            // Aggiunge il QR Code come immagine principale
-            var immagineQRCode = new MaterialeImmagine
+            if (_materialeRepository.ExistsByCodice(nuovoMateriale.CodiceMateriale))
             {
-                UrlImmagine = "", // URL vuoto, può essere gestito come necessario
-                IsPrincipale = true,
-                QRCodeData = qrCodeData
-            };
+                return Conflict($"Un materiale con il codice '{nuovoMateriale.CodiceMateriale}' esiste già.");
+            }
 
-            nuovoMateriale.Immagini = new List<MaterialeImmagine> { immagineQRCode };
-            nuovoMateriale.DataCreazione = DateTime.Now;
+            try
+            {
+                string qrCodeData = GeneraCodiceQR(nuovoMateriale.CodiceMateriale);
 
-            // Salva il materiale
-            _materialeRepository.Add(nuovoMateriale);
+                var immagineQRCode = new MaterialeImmagine
+                {
+                    UrlImmagine = string.Empty,
+                    IsPrincipale = true,
+                    QRCodeData = qrCodeData
+                };
 
-            return Ok(nuovoMateriale);
+                nuovoMateriale.Immagini = new List<MaterialeImmagine> { immagineQRCode };
+                nuovoMateriale.DataCreazione = DateTime.UtcNow;
+
+                _materialeRepository.Add(nuovoMateriale);
+
+                return CreatedAtAction(nameof(GetMateriale), new { codiceMateriale = nuovoMateriale.CodiceMateriale }, nuovoMateriale);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante la creazione del materiale");
+                return StatusCode(500, "Si è verificato un errore interno durante la creazione del materiale.");
+            }
         }
 
-        // Endpoint per aggiungere immagini a un materiale esistente
-        [HttpPost("aggiungi-immagine/{id}")]
-        public IActionResult AggiungiImmagine(int id, [FromBody] MaterialeImmagine nuovaImmagine)
+        [HttpGet("{codiceMateriale}")]
+        public ActionResult<Materiale> GetMateriale(string codiceMateriale)
         {
-            var materiale = _materialeRepository.GetById(id);
+            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
+
             if (materiale == null)
             {
-                return NotFound("Materiale non trovato.");
+                return NotFound($"Materiale con codice '{codiceMateriale}' non trovato.");
             }
 
-            // Aggiungi l'immagine al materiale
+            return Ok(materiale);
+        }
+
+        [HttpPost("{codiceMateriale}/immagini")]
+        public ActionResult<Materiale> AggiungiImmagine(string codiceMateriale, [FromBody] MaterialeImmagine nuovaImmagine)
+        {
+            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
+            if (materiale == null)
+            {
+                return NotFound($"Materiale con codice '{codiceMateriale}' non trovato.");
+            }
+
             if (materiale.Immagini == null)
             {
                 materiale.Immagini = new List<MaterialeImmagine>();
             }
             materiale.Immagini.Add(nuovaImmagine);
 
-            _materialeRepository.Update(materiale);
-
-            return Ok(materiale);
+            try
+            {
+                _materialeRepository.Update(materiale);
+                return Ok(materiale);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante l'aggiunta dell'immagine al materiale");
+                return StatusCode(500, "Si è verificato un errore interno durante l'aggiunta dell'immagine.");
+            }
         }
 
-        // Funzione per generare il QR Code
+        [HttpDelete("{codiceMateriale}")]
+        public IActionResult Delete(string codiceMateriale)
+        {
+            try
+            {
+                _materialeRepository.Delete(codiceMateriale);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound($"Materiale con codice '{codiceMateriale}' non trovato.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante l'eliminazione del materiale");
+                return StatusCode(500, "Si è verificato un errore interno durante l'eliminazione del materiale.");
+            }
+        }
+
         private string GeneraCodiceQR(string codiceMateriale)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())

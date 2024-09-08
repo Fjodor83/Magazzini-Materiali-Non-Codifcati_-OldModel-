@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MagazziniMaterialiAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240906235027_InitialCreate")]
+    [Migration("20240908221512_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -114,6 +114,10 @@ namespace MagazziniMaterialiAPI.Migrations
 
                     b.Property<int?>("MaterialeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("QRCodeData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UrlImmagine")
                         .IsRequired()

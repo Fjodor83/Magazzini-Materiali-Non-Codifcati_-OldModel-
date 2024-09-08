@@ -214,6 +214,7 @@ namespace MagazziniMaterialiAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UrlImmagine = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsPrincipale = table.Column<bool>(type: "bit", nullable: false),
+                    QRCodeData = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MaterialeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
