@@ -10,5 +10,6 @@ namespace MagazziniMaterialiAPI.Repositories
         void Update(Materiale materiale);
         bool ExistsByCodice(string codiceMateriale);
         void Delete(string codiceMateriale);
+        Materiale GetById(int materialeId);
     }
 }

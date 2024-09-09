@@ -26,6 +26,8 @@ builder.Services.AddScoped<EtichettaService>();
 builder.Services.AddScoped<IMaterialeRepository, MaterialeRepository>();
 builder.Services.AddScoped<MovimentazioneService>();
 builder.Services.AddScoped<MissionePrelievoService>();
+builder.Services.AddScoped<IGiacenzaRepository, GiacenzaRepository>();
+builder.Services.AddScoped<IMovimentazioneRepository, MovimentazioneRepository>();
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

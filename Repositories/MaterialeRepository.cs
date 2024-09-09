@@ -145,5 +145,16 @@ namespace MagazziniMaterialiAPI.Repositories
                 existingMateriale.Classificazioni.Add(classificazione);
             }
         }
+
+        public Materiale GetById(int materialeId)
+        {
+            // Trova il materiale per il suo ID, includendo anche eventuali proprietà di navigazione se necessario
+            var materiale = _context.Materiali
+                .Include(m => m.Immagini) // Includi se ci sono immagini legate al materiale
+                .Include(m => m.Classificazioni) // Includi le classificazioni, se applicabile
+                .FirstOrDefault(m => m.Id == materialeId);
+
+            return materiale;
+        }
     }
 }
