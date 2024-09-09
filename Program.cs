@@ -24,6 +24,8 @@ builder.Services.AddSwaggerGen();
 // Aggiungi il servizio per le etichette
 builder.Services.AddScoped<EtichettaService>();
 builder.Services.AddScoped<IMaterialeRepository, MaterialeRepository>();
+builder.Services.AddScoped<MovimentazioneService>();
+builder.Services.AddScoped<MissionePrelievoService>();
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

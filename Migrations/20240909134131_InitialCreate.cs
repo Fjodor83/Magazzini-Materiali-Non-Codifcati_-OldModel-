@@ -189,6 +189,29 @@ namespace MagazziniMaterialiAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MissioniPrelievo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CodiceUnivoco = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TipologiaDestinazione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Descrizione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Stato = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OperatoreId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MissioniPrelievo", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MissioniPrelievo_AspNetUsers_OperatoreId",
+                        column: x => x.OperatoreId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Classificazioni",
                 columns: table => new
                 {
@@ -204,6 +227,34 @@ namespace MagazziniMaterialiAPI.Migrations
                         column: x => x.MaterialeId,
                         principalTable: "Materiali",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Giacenze",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    MagazzinoId = table.Column<int>(type: "int", nullable: false),
+                    QuantitaDisponibile = table.Column<int>(type: "int", nullable: false),
+                    QuantitaImpegnata = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Giacenze", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Giacenze_Magazzini_MagazzinoId",
+                        column: x => x.MagazzinoId,
+                        principalTable: "Magazzini",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Giacenze_Materiali_MaterialeId",
+                        column: x => x.MaterialeId,
+                        principalTable: "Materiali",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -225,6 +276,63 @@ namespace MagazziniMaterialiAPI.Migrations
                         column: x => x.MaterialeId,
                         principalTable: "Materiali",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Movimentazioni",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TipoMovimentazione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    MagazzinoId = table.Column<int>(type: "int", nullable: false),
+                    Quantita = table.Column<int>(type: "int", nullable: false),
+                    DataMovimentazione = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Nota = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Movimentazioni", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Movimentazioni_Magazzini_MagazzinoId",
+                        column: x => x.MagazzinoId,
+                        principalTable: "Magazzini",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Movimentazioni_Materiali_MaterialeId",
+                        column: x => x.MaterialeId,
+                        principalTable: "Materiali",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DettagliMissione",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MissionePrelievoId = table.Column<int>(type: "int", nullable: false),
+                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    QuantitaPrelevata = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DettagliMissione", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DettagliMissione_Materiali_MaterialeId",
+                        column: x => x.MaterialeId,
+                        principalTable: "Materiali",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DettagliMissione_MissioniPrelievo_MissionePrelievoId",
+                        column: x => x.MissionePrelievoId,
+                        principalTable: "MissioniPrelievo",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -272,8 +380,43 @@ namespace MagazziniMaterialiAPI.Migrations
                 column: "MaterialeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DettagliMissione_MaterialeId",
+                table: "DettagliMissione",
+                column: "MaterialeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DettagliMissione_MissionePrelievoId",
+                table: "DettagliMissione",
+                column: "MissionePrelievoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Giacenze_MagazzinoId",
+                table: "Giacenze",
+                column: "MagazzinoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Giacenze_MaterialeId",
+                table: "Giacenze",
+                column: "MaterialeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MaterialeImmagini_MaterialeId",
                 table: "MaterialeImmagini",
+                column: "MaterialeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MissioniPrelievo_OperatoreId",
+                table: "MissioniPrelievo",
+                column: "OperatoreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimentazioni_MagazzinoId",
+                table: "Movimentazioni",
+                column: "MagazzinoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimentazioni_MaterialeId",
+                table: "Movimentazioni",
                 column: "MaterialeId");
         }
 
@@ -299,19 +442,31 @@ namespace MagazziniMaterialiAPI.Migrations
                 name: "Classificazioni");
 
             migrationBuilder.DropTable(
-                name: "Magazzini");
+                name: "DettagliMissione");
+
+            migrationBuilder.DropTable(
+                name: "Giacenze");
 
             migrationBuilder.DropTable(
                 name: "MaterialeImmagini");
 
             migrationBuilder.DropTable(
+                name: "Movimentazioni");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "MissioniPrelievo");
+
+            migrationBuilder.DropTable(
+                name: "Magazzini");
 
             migrationBuilder.DropTable(
                 name: "Materiali");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

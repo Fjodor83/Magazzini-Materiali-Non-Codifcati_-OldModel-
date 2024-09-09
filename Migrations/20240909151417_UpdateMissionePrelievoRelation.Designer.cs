@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MagazziniMaterialiAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240908221512_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240909151417_UpdateMissionePrelievoRelation")]
+    partial class UpdateMissionePrelievoRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,61 @@ namespace MagazziniMaterialiAPI.Migrations
                     b.HasIndex("MaterialeId");
 
                     b.ToTable("Classificazioni");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.DettaglioMissione", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MaterialeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MissionePrelievoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantitaPrelevata")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialeId");
+
+                    b.HasIndex("MissionePrelievoId");
+
+                    b.ToTable("DettagliMissione");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Giacenza", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MagazzinoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaterialeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantitaDisponibile")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantitaImpegnata")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MagazzinoId");
+
+                    b.HasIndex("MaterialeId");
+
+                    b.ToTable("Giacenze");
                 });
 
             modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Magazzino", b =>
@@ -128,6 +183,78 @@ namespace MagazziniMaterialiAPI.Migrations
                     b.HasIndex("MaterialeId");
 
                     b.ToTable("MaterialeImmagini");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.MissionePrelievo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodiceUnivoco")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Descrizione")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OperatoreId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Stato")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TipologiaDestinazione")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OperatoreId");
+
+                    b.ToTable("MissioniPrelievo");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Movimentazione", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataMovimentazione")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MagazzinoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaterialeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nota")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantita")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TipoMovimentazione")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MagazzinoId");
+
+                    b.HasIndex("MaterialeId");
+
+                    b.ToTable("Movimentazioni");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -335,11 +462,79 @@ namespace MagazziniMaterialiAPI.Migrations
                         .HasForeignKey("MaterialeId");
                 });
 
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.DettaglioMissione", b =>
+                {
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.Materiale", "Materiale")
+                        .WithMany()
+                        .HasForeignKey("MaterialeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.MissionePrelievo", "MissionePrelievo")
+                        .WithMany("DettagliMissione")
+                        .HasForeignKey("MissionePrelievoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Materiale");
+
+                    b.Navigation("MissionePrelievo");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Giacenza", b =>
+                {
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.Magazzino", "Magazzino")
+                        .WithMany()
+                        .HasForeignKey("MagazzinoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.Materiale", "Materiale")
+                        .WithMany()
+                        .HasForeignKey("MaterialeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Magazzino");
+
+                    b.Navigation("Materiale");
+                });
+
             modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.MaterialeImmagine", b =>
                 {
                     b.HasOne("MagazziniMaterialiAPI.Models.Entity.Materiale", null)
                         .WithMany("Immagini")
                         .HasForeignKey("MaterialeId");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.MissionePrelievo", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Operatore")
+                        .WithMany()
+                        .HasForeignKey("OperatoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Operatore");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.Movimentazione", b =>
+                {
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.Magazzino", "Magazzino")
+                        .WithMany()
+                        .HasForeignKey("MagazzinoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MagazziniMaterialiAPI.Models.Entity.Materiale", "Materiale")
+                        .WithMany()
+                        .HasForeignKey("MaterialeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Magazzino");
+
+                    b.Navigation("Materiale");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -398,6 +593,11 @@ namespace MagazziniMaterialiAPI.Migrations
                     b.Navigation("Classificazioni");
 
                     b.Navigation("Immagini");
+                });
+
+            modelBuilder.Entity("MagazziniMaterialiAPI.Models.Entity.MissionePrelievo", b =>
+                {
+                    b.Navigation("DettagliMissione");
                 });
 #pragma warning restore 612, 618
         }

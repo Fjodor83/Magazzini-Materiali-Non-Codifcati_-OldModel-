@@ -9,6 +9,7 @@ using MagazziniMaterialiAPI.Repositories;
 using MagazziniMaterialiAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
@@ -125,19 +126,32 @@ namespace MagazziniMaterialiAPI.Controllers
         {
             try
             {
+                var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
+                if (materiale == null)
+                {
+                    return NotFound($"Materiale con codice '{codiceMateriale}' non trovato.");
+                }
+
                 _materialeRepository.Delete(codiceMateriale);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound($"Materiale con codice '{codiceMateriale}' non trovato.");
+                _logger.LogError(ex, "Materiale con codice {CodiceMateriale} non trovato.", codiceMateriale);
+                return NotFound(ex.Message);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Errore di aggiornamento del database durante l'eliminazione del materiale con codice {CodiceMateriale}.", codiceMateriale);
+                return StatusCode(500, "Errore di aggiornamento del database.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante l'eliminazione del materiale");
+                _logger.LogError(ex, "Errore durante l'eliminazione del materiale con codice {CodiceMateriale}.", codiceMateriale);
                 return StatusCode(500, "Si è verificato un errore interno durante l'eliminazione del materiale.");
             }
         }
+
 
         private string GeneraCodiceQR(string codiceMateriale)
         {

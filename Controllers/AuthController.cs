@@ -1,4 +1,5 @@
 ﻿using MagazziniMaterialiAPI.Models;
+using MagazziniMaterialiAPI.Models.Entity.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,21 +26,38 @@ namespace MagazziniMaterialiAPI.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        [HttpPost("registra-operatore")]
+        public async Task<IActionResult> RegistraOperatore([FromBody] RegistraOperatoreDto dto)
         {
-            var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (result.Succeeded)
             {
-                //await _userManager.AddToRoleAsync(user, "User");
-                return Ok(new { message = "User registered successfully" });
+                await _userManager.AddToRoleAsync(user, "Operatore");
+                return Ok(new { message = "Operatore registrato con successo", operatoreId = user.Id });
             }
 
             return BadRequest(result.Errors);
         }
 
+        [HttpPost("assegna-ruolo-operatore")]
+        public async Task<IActionResult> AssegnaRuoloOperatore([FromBody] string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("Utente non trovato");
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, "Operatore");
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Ruolo Operatore assegnato con successo", operatoreId = user.Id });
+            }
+
+            return BadRequest(result.Errors);
+        }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
