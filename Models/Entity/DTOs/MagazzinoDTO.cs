@@ -1,17 +1,15 @@
-﻿namespace MagazziniMaterialiAPI.Models.Entity
+﻿namespace MagazziniMaterialiAPI.Models.Entity.DTOs
 {
-    public class Magazzino
+    public class MagazzinoDTO
     {
         public int Id { get; set; }
         public string CodiceMagazzino { get; set; }
         public string NomeMagazzino { get; set; }
         public string DescrizioneMagazzino { get; set; }
         public string Note { get; set; }
-        public List<MaterialeMagazzino> MaterialeMagazzini { get; set; }
 
-        public Magazzino()
+        public MagazzinoDTO()
         {
-            MaterialeMagazzini = new List<MaterialeMagazzino>();
         }
     }
 }

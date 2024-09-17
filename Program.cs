@@ -1,3 +1,4 @@
+using MagazziniMaterialiAPI;
 using MagazziniMaterialiAPI.Data;
 using MagazziniMaterialiAPI.Repositories;
 using MagazziniMaterialiAPI.Services;
@@ -15,6 +16,13 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    });
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -28,10 +36,20 @@ builder.Services.AddScoped<MovimentazioneService>();
 builder.Services.AddScoped<MissionePrelievoService>();
 builder.Services.AddScoped<IGiacenzaRepository, GiacenzaRepository>();
 builder.Services.AddScoped<IMovimentazioneRepository, MovimentazioneRepository>();
+builder.Services.AddControllers();
+
+builder.Services.AddScoped<IMagazziniService, MagazziniService>();
+builder.Services.AddScoped<IMagazzinoMapper, MagazzinoMapper>();
+builder.Services.AddScoped<IMagazzinoRepository, MagazzinoRepository>();
+
+builder.Services.AddScoped<IMaterialiService, MaterialiService>();
+builder.Services.AddScoped<IMaterialeMapper, MaterialeMapper>();
+builder.Services.AddScoped<IMaterialeRepository, MaterialeRepository>();
 
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IMaterialeMagazziniService, MaterialeMagazziniService>();
+builder.Services.AddScoped<IMaterialeMagazzinoRepository, MaterialeMagazzinoRepository>();
+
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
