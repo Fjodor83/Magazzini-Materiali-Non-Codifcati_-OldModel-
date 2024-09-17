@@ -1,15 +1,17 @@
-﻿using MagazziniMaterialiAPI.Models.Entity;
+﻿using MagazziniMaterialiAPI.Data;
+using MagazziniMaterialiAPI.Models.Entity;
 
 namespace MagazziniMaterialiAPI.Repositories
 {
-    public interface IMaterialeRepository
+    public interface IMaterialeRepository : IBaseRepository
     {
-        Materiale GetByCodiceMateriale(string codiceMateriale);
-        IEnumerable<Materiale> GetAll();
-        void Add(Materiale materiale);  
-        void Update(Materiale materiale);
-        bool ExistsByCodice(string codiceMateriale);
-        void Delete(string codiceMateriale);
-        Materiale GetById(int materialeId);
+        public List<Materiale> GetAll();
+        public Materiale? GetById(int id);
+
+        public Materiale AddMateriale(Materiale Materiale);
+        bool EditMateriale(int MaterialeId, Materiale Materiale);
+        public void DeleteMateriale(Materiale Materiale);
+        public List<Magazzino> GetMagazziniByMaterialeId(int MaterialeId);
+
     }
 }

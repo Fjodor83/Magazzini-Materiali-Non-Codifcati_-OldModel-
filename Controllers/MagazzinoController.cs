@@ -9,112 +9,142 @@ using MagazziniMaterialiAPI.Data;
 using MagazziniMaterialiAPI.Models.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using MagazziniMaterialiAPI.Models.Entity.DTOs;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    
-    public class MagazzinoController : ControllerBase
+    [Route("Magazzino")]
+    public class MagazzinoController : Controller
     {
-        private readonly ApplicationDbContext _context;
-       
+        private readonly IMagazziniService _Magazziniervice;
+        private readonly IMaterialeMagazziniService _MaterialeMagazziniervice;
+        private readonly IMagazzinoMapper _MagazzinoMapper;
 
-        public MagazzinoController(ApplicationDbContext context)
+        public MagazzinoController(IMagazziniService Magazziniervice, IMaterialeMagazziniService MaterialeMagazziniervice, IMagazzinoMapper MagazzinoMapper)
         {
-            _context = context;
+            _MaterialeMagazziniervice = MaterialeMagazziniervice;
+            _Magazziniervice = Magazziniervice;
+            _MagazzinoMapper = MagazzinoMapper;
         }
 
-        
-
-        // GET: api/Magazzino
+        /// <summary>
+        /// get Magazzino list
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        
-        public async Task<ActionResult<IEnumerable<Magazzino>>> GetMagazzini()
+        public ActionResult GetMagazzini()
         {
-            return await _context.Magazzini.ToListAsync();
+            List<MagazzinoDTO> result = _Magazziniervice.GetAll();
+            return Ok(result);
         }
 
-        // GET: api/Magazzino/5
-        [HttpGet("{id}")]
-        
-        public async Task<ActionResult<Magazzino>> GetMagazzino(int id)
+        /// <summary>
+        /// get Magazzino by id
+        /// </summary>
+        /// <param name="MagazzinoId"></param>
+        /// <returns></returns>
+        [HttpGet("{MagazzinoId}")]
+        public ActionResult GetMagazzinoById([FromRoute] int MagazzinoId)
         {
-            var magazzino = await _context.Magazzini.FindAsync(id);
-
-            if (magazzino == null)
-            {
-                return NotFound();
-            }
-
-            return magazzino;
+            MagazzinoDTO? Magazzino = _Magazziniervice.GetById(MagazzinoId);
+            return Magazzino == null ? NotFound() : Ok(Magazzino);
         }
 
-        // PUT: api/Magazzino/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-       
-        public async Task<IActionResult> PutMagazzino(int id, Magazzino magazzino)
-        {
-            if (id != magazzino.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(magazzino).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MagazzinoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Magazzino
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>to Db
+        /// add Magazzino 
+        /// </summary>
+        /// <param name="MagazzinoDTO"></param>
+        /// <returns></returns>
         [HttpPost]
-       
-        public async Task<ActionResult<Magazzino>> PostMagazzino(Magazzino magazzino)
+        public ActionResult AddMagazzino([FromBody] MagazzinoDTO MagazzinoDTO)
         {
-            _context.Magazzini.Add(magazzino);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMagazzino", new { id = magazzino.Id }, magazzino);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Please Add Magazzino");
+            }
+            else
+            {
+                try
+                {
+                    Magazzino AddMagazzino = _Magazziniervice.AddMagazzino(MagazzinoDTO);
+                    _Magazziniervice.SaveChanges();
+                    MagazzinoDTO MagazzinoDTOResult = _MagazzinoMapper.MapToMagazzinoDTO(AddMagazzino);
+                    return Ok(MagazzinoDTOResult);
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e);
+                }
+            }
         }
 
-        // DELETE: api/Magazzino/5
-        [HttpDelete("{id}")]
-        
-
-        public async Task<IActionResult> DeleteMagazzino(int id)
+        /// <summary>
+        /// edit Magazzino data in db
+        /// </summary>
+        /// <param name="MagazzinoId"></param>
+        /// <param name="MagazzinoDTO"></param>
+        /// <returns></returns>
+        [HttpPut("{MagazzinoId}")]
+        public ActionResult EditMagazzino([FromRoute] int MagazzinoId, [FromBody] MagazzinoDTO MagazzinoDTO)
         {
-            var magazzino = await _context.Magazzini.FindAsync(id);
-            if (magazzino == null)
+
+            bool isEdited = _Magazziniervice.EditMagazzino(MagazzinoId, MagazzinoDTO);
+            if (!isEdited)
             {
-                return NotFound();
+                return NotFound("Magazzino Not Found!!!!!!");
             }
 
-            _context.Magazzini.Remove(magazzino);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            _Magazziniervice.SaveChanges();
+            return Ok(MagazzinoDTO);
         }
 
-        private bool MagazzinoExists(int id)
+        /// <summary>
+        /// delete Magazzino from db
+        /// </summary>
+        /// <param name="MagazzinoId"></param>
+        /// <returns></returns>
+
+        [HttpDelete("{MagazzinoId}")]
+        public ActionResult DeleteMagazzino([FromRoute] int MagazzinoId)
         {
-            return _context.Magazzini.Any(e => e.Id == id);
+            bool isDeleted = _Magazziniervice.DeleteMagazzino(MagazzinoId);
+            if (!isDeleted)
+            {
+                return NotFound("Magazzino Not Found!!!!!!");
+            }
+            _Magazziniervice.SaveChanges();
+            return Ok("Magazzino Deleted Successfully");
+        }
+
+        [HttpPost("registerMaterialeMagazzino/{MagazzinoId}/{MaterialeId}")]
+        public ActionResult RegisterMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
+        {
+
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniervice.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            _MaterialeMagazziniervice.SaveChanges();
+            return Ok("Materiale Registered to Magazzino Successfully");
+        }
+
+        [HttpDelete("registerMaterialeMagazzino/{MagazzinoId}/{MaterialeId}")]
+        public ActionResult DeleteMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
+        {
+
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniervice.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            _MaterialeMagazziniervice.SaveChanges();
+            return Ok("Materiale Deleted from Magazzino Successfully");
+        }
+
+        /// <summary>
+        /// get all Materiali in a Magazzino
+        /// </summary>
+        /// <param name="MagazzinoId"></param>
+        /// <returns></returns>
+        [HttpGet("MaterialiByMagazzino/{MagazzinoId}")]
+        public ActionResult MaterialiByMagazzinoId([FromRoute] int MagazzinoId)
+        {
+            List<MaterialeDTO> Materiali = _Magazziniervice.GetMaterialiByMagazzinoId(MagazzinoId);
+            return Ok(Materiali);
         }
     }
 }

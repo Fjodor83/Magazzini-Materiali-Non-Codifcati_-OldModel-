@@ -16,8 +16,7 @@ namespace MagazziniMaterialiAPI.Data
         public DbSet<Materiale> Materiali { get; set; }
         public DbSet<Classificazione> Classificazioni { get; set; }
         public DbSet<MaterialeImmagine> MaterialeImmagini { get; set; }
-
-        // Nuove entità
+        public DbSet<MaterialeMagazzino> MaterialeMagazzini { get; set; }
         public DbSet<Movimentazione> Movimentazioni { get; set; }
         public DbSet<Giacenza> Giacenze { get; set; }
         public DbSet<MissionePrelievo> MissioniPrelievo { get; set; }

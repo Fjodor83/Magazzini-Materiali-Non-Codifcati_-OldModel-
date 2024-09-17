@@ -1,7 +1,7 @@
 ﻿using MagazziniMaterialiAPI.Data;
 using MagazziniMaterialiAPI.Models.Entity;
 
-namespace MagazziniMaterialiAPI.Services
+namespace MagazziniMaterialiAPI
 {
     public class MovimentazioneService
     {

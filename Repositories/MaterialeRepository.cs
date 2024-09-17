@@ -5,156 +5,94 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MagazziniMaterialiAPI.Data;
 using MagazziniMaterialiAPI.Models.Entity;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MagazziniMaterialiAPI.Repositories
 {
-    public class MaterialeRepository : IMaterialeRepository
+    public class MaterialeRepository : BaseRepository, IMaterialeRepository
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<MaterialeRepository> _logger;
-
-        public MaterialeRepository(ApplicationDbContext context, ILogger<MaterialeRepository> logger)
+        private ApplicationDbContext _ApplicationDbContext;
+        public MaterialeRepository(ApplicationDbContext ApplicationDbContext) : base(ApplicationDbContext)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _ApplicationDbContext = ApplicationDbContext;
         }
 
-        public Materiale GetByCodiceMateriale(string codiceMateriale)
+        /// <summary>
+        /// get all Materiali
+        /// </summary>
+        /// <returns></returns>
+        public List<Materiale> GetAll()
         {
-            return _context.Materiali
-                .Include(m => m.Immagini)
-                .Include(m => m.Classificazioni)
-                .FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
+            return _ApplicationDbContext.Materiali.ToList();
         }
 
-        public IEnumerable<Materiale> GetAll()
+        /// <summary>
+        /// get Materiale by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Materiale? GetById(int id)
         {
-            return _context.Materiali
-                .Include(m => m.Immagini)
-                .Include(m => m.Classificazioni)
-                .ToList();
+            return _ApplicationDbContext.Materiali.FirstOrDefault(g => g.Id == id);
+        }
+        /// <summary>
+        /// delete Materiale
+        /// </summary>
+        /// <param name="Materiale"></param>
+        public void DeleteMateriale(Materiale Materiale)
+        {
+            _ApplicationDbContext.Remove(Materiale);
         }
 
-        public void Add(Materiale materiale)
+        /// <summary>
+        /// edit Materiale data
+        /// </summary>
+        /// <param name="MaterialeId"></param>
+        /// <param name="Materiale"></param>
+        public bool EditMateriale(int MaterialeId, Materiale Materiale)
         {
-            if (materiale == null)
+            Materiale? existingEntity = _ApplicationDbContext.Materiali.Find(MaterialeId);
+            if (existingEntity == null)
             {
-                throw new ArgumentNullException(nameof(materiale));
+                return false;
             }
-
-            try
+            else
             {
-                _context.Materiali.Add(materiale);
-                _context.SaveChanges();
+                _ApplicationDbContext.Entry(existingEntity).State = EntityState.Detached;
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Errore durante il salvataggio del nuovo materiale: {Message}", ex.InnerException?.Message ?? ex.Message);
-                throw new InvalidOperationException("Non è stato possibile salvare il materiale.", ex);
-            }
+            _ApplicationDbContext.Attach(Materiale);
+            _ApplicationDbContext.Entry(Materiale).State = EntityState.Modified;
+            return true;
         }
 
-        public void Update(Materiale materiale)
+        /// <summary>
+        /// add Materiale to database
+        /// </summary>
+        /// <param name="Materiale"></param>
+        /// <returns></returns>
+        public Materiale AddMateriale(Materiale Materiale)
         {
-            if (materiale == null)
-            {
-                throw new ArgumentNullException(nameof(materiale));
-            }
+            EntityEntry<Materiale> x = _ApplicationDbContext.Materiali.Add(Materiale);
+            return x.Entity;
 
-            var existingMateriale = _context.Materiali
-                .Include(m => m.Immagini)
-                .Include(m => m.Classificazioni)
-                .FirstOrDefault(m => m.CodiceMateriale == materiale.CodiceMateriale);
-
-            if (existingMateriale == null)
-            {
-                throw new KeyNotFoundException($"Il materiale con Codice Materiale {materiale.CodiceMateriale} non esiste.");
-            }
-
-            try
-            {
-                _context.Entry(existingMateriale).CurrentValues.SetValues(materiale);
-
-                // Aggiorna o aggiungi le nuove immagini
-                UpdateImmagini(existingMateriale, materiale.Immagini);
-
-                // Aggiorna o aggiungi le nuove classificazioni
-                UpdateClassificazioni(existingMateriale, materiale.Classificazioni);
-
-                _context.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Errore durante l'aggiornamento del materiale: {Message}", ex.InnerException?.Message ?? ex.Message);
-                throw new InvalidOperationException("Non è stato possibile aggiornare il materiale.", ex);
-            }
         }
 
-        public void Delete(string codiceMateriale)
+        /// <summary>
+        ///  get Materiale Magazzini by Materiale ID 
+        /// </summary>
+        /// <param name="MaterialeId"></param>
+        /// <returns></returns>
+        public List<Magazzino> GetMagazziniByMaterialeId(int MaterialeId)
         {
-            var materiale = _context.Materiali.FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
-            if (materiale == null)
+            List<Magazzino> Magazzini = new List<Magazzino>();
+            Materiale? Materiale = _ApplicationDbContext.Materiali
+                .Include(x => x.MaterialeMagazzini)
+                .ThenInclude(x => x.Magazzino).FirstOrDefault(x => x.Id == MaterialeId);
+            if (Materiale != null)
             {
-                throw new KeyNotFoundException($"Il materiale con Codice Materiale {codiceMateriale} non esiste.");
+                Magazzini = Materiale.MaterialeMagazzini.Select(x => x.Magazzino).ToList();
             }
-
-            try
-            {
-                _context.Materiali.Remove(materiale);
-                _context.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Errore durante l'eliminazione del materiale: {Message}", ex.InnerException?.Message ?? ex.Message);
-                throw new InvalidOperationException("Non è stato possibile eliminare il materiale.", ex);
-            }
-        }
-
-        public bool ExistsByCodice(string codiceMateriale)
-        {
-            if (string.IsNullOrEmpty(codiceMateriale))
-            {
-                throw new ArgumentNullException(nameof(codiceMateriale));
-            }
-
-            try
-            {
-                return _context.Materiali.Any(m => m.CodiceMateriale == codiceMateriale);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Errore durante la verifica dell'esistenza del materiale con codice: {CodiceMateriale}", codiceMateriale);
-                throw new InvalidOperationException("Errore durante la verifica dell'esistenza del materiale.", ex);
-            }
-        }
-
-        private void UpdateImmagini(Materiale existingMateriale, ICollection<MaterialeImmagine> newImmagini)
-        {
-            existingMateriale.Immagini.Clear();
-            foreach (var immagine in newImmagini)
-            {
-                existingMateriale.Immagini.Add(immagine);
-            }
-        }
-
-        private void UpdateClassificazioni(Materiale existingMateriale, ICollection<Classificazione> newClassificazioni)
-        {
-            existingMateriale.Classificazioni.Clear();
-            foreach (var classificazione in newClassificazioni)
-            {
-                existingMateriale.Classificazioni.Add(classificazione);
-            }
-        }
-
-        public Materiale GetById(int materialeId)
-        {
-            // Trova il materiale per il suo ID, includendo anche eventuali proprietà di navigazione se necessario
-            var materiale = _context.Materiali
-                .Include(m => m.Immagini) // Includi se ci sono immagini legate al materiale
-                .Include(m => m.Classificazioni) // Includi le classificazioni, se applicabile
-                .FirstOrDefault(m => m.Id == materialeId);
-
-            return materiale;
+            return Magazzini;
         }
     }
 }
