@@ -10,21 +10,22 @@ using MagazziniMaterialiAPI.Models.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using MagazziniMaterialiAPI.Models.Entity.DTOs;
+using MagazziniMaterialiAPI.Services;
 
 namespace MagazziniMaterialiAPI.Controllers
 {
     [ApiController]
-    [Route("Magazzino")]
+    [Route("api/[controller]")]
     public class MagazzinoController : Controller
     {
-        private readonly IMagazziniService _Magazziniervice;
-        private readonly IMaterialeMagazziniService _MaterialeMagazziniervice;
+        private readonly IMagazziniService _MagazziniService;
+        private readonly IMaterialeMagazziniService _MaterialeMagazziniService;
         private readonly IMagazzinoMapper _MagazzinoMapper;
 
         public MagazzinoController(IMagazziniService Magazziniervice, IMaterialeMagazziniService MaterialeMagazziniervice, IMagazzinoMapper MagazzinoMapper)
         {
-            _MaterialeMagazziniervice = MaterialeMagazziniervice;
-            _Magazziniervice = Magazziniervice;
+            _MaterialeMagazziniService = MaterialeMagazziniervice;
+            _MagazziniService = Magazziniervice;
             _MagazzinoMapper = MagazzinoMapper;
         }
 
@@ -35,7 +36,7 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpGet]
         public ActionResult GetMagazzini()
         {
-            List<MagazzinoDTO> result = _Magazziniervice.GetAll();
+            List<MagazzinoDTO> result = _MagazziniService.GetAll();
             return Ok(result);
         }
 
@@ -47,7 +48,7 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpGet("{MagazzinoId}")]
         public ActionResult GetMagazzinoById([FromRoute] int MagazzinoId)
         {
-            MagazzinoDTO? Magazzino = _Magazziniervice.GetById(MagazzinoId);
+            MagazzinoDTO? Magazzino = _MagazziniService.GetById(MagazzinoId);
             return Magazzino == null ? NotFound() : Ok(Magazzino);
         }
 
@@ -67,8 +68,8 @@ namespace MagazziniMaterialiAPI.Controllers
             {
                 try
                 {
-                    Magazzino AddMagazzino = _Magazziniervice.AddMagazzino(MagazzinoDTO);
-                    _Magazziniervice.SaveChanges();
+                    Magazzino AddMagazzino = _MagazziniService.AddMagazzino(MagazzinoDTO);
+                    _MagazziniService.SaveChanges();
                     MagazzinoDTO MagazzinoDTOResult = _MagazzinoMapper.MapToMagazzinoDTO(AddMagazzino);
                     return Ok(MagazzinoDTOResult);
                 }
@@ -89,13 +90,13 @@ namespace MagazziniMaterialiAPI.Controllers
         public ActionResult EditMagazzino([FromRoute] int MagazzinoId, [FromBody] MagazzinoDTO MagazzinoDTO)
         {
 
-            bool isEdited = _Magazziniervice.EditMagazzino(MagazzinoId, MagazzinoDTO);
+            bool isEdited = _MagazziniService.EditMagazzino(MagazzinoId, MagazzinoDTO);
             if (!isEdited)
             {
                 return NotFound("Magazzino Not Found!!!!!!");
             }
 
-            _Magazziniervice.SaveChanges();
+            _MagazziniService.SaveChanges();
             return Ok(MagazzinoDTO);
         }
 
@@ -108,12 +109,12 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpDelete("{MagazzinoId}")]
         public ActionResult DeleteMagazzino([FromRoute] int MagazzinoId)
         {
-            bool isDeleted = _Magazziniervice.DeleteMagazzino(MagazzinoId);
+            bool isDeleted = _MagazziniService.DeleteMagazzino(MagazzinoId);
             if (!isDeleted)
             {
                 return NotFound("Magazzino Not Found!!!!!!");
             }
-            _Magazziniervice.SaveChanges();
+            _MagazziniService.SaveChanges();
             return Ok("Magazzino Deleted Successfully");
         }
 
@@ -121,8 +122,8 @@ namespace MagazziniMaterialiAPI.Controllers
         public ActionResult RegisterMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
         {
 
-            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniervice.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
-            _MaterialeMagazziniervice.SaveChanges();
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            _MaterialeMagazziniService.SaveChanges();
             return Ok("Materiale Registered to Magazzino Successfully");
         }
 
@@ -130,8 +131,8 @@ namespace MagazziniMaterialiAPI.Controllers
         public ActionResult DeleteMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
         {
 
-            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniervice.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
-            _MaterialeMagazziniervice.SaveChanges();
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            _MaterialeMagazziniService.SaveChanges();
             return Ok("Materiale Deleted from Magazzino Successfully");
         }
 
@@ -143,7 +144,7 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpGet("MaterialiByMagazzino/{MagazzinoId}")]
         public ActionResult MaterialiByMagazzinoId([FromRoute] int MagazzinoId)
         {
-            List<MaterialeDTO> Materiali = _Magazziniervice.GetMaterialiByMagazzinoId(MagazzinoId);
+            List<MaterialeDTO> Materiali = _MagazziniService.GetMaterialiByMagazzinoId(MagazzinoId);
             return Ok(Materiali);
         }
     }

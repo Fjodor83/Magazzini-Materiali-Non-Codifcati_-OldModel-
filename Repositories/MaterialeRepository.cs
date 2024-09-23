@@ -1,98 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using MagazziniMaterialiAPI.Data;
+using MagazziniMaterialiAPI.Models.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MagazziniMaterialiAPI.Data;
-using MagazziniMaterialiAPI.Models.Entity;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MagazziniMaterialiAPI.Repositories
 {
     public class MaterialeRepository : BaseRepository, IMaterialeRepository
     {
-        private ApplicationDbContext _ApplicationDbContext;
-        public MaterialeRepository(ApplicationDbContext ApplicationDbContext) : base(ApplicationDbContext)
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<MaterialeRepository> _logger;
+
+        public MaterialeRepository(ApplicationDbContext context, ILogger<MaterialeRepository> logger) : base(context)
         {
-            _ApplicationDbContext = ApplicationDbContext;
+            _context = context;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// get all Materiali
-        /// </summary>
-        /// <returns></returns>
         public List<Materiale> GetAll()
         {
-            return _ApplicationDbContext.Materiali.ToList();
+            return _context.Materiali
+                .Include(m => m.Immagini)
+                .Include(m => m.Classificazioni)
+                .ToList();
         }
 
-        /// <summary>
-        /// get Materiale by id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public Materiale? GetById(int id)
         {
-            return _ApplicationDbContext.Materiali.FirstOrDefault(g => g.Id == id);
-        }
-        /// <summary>
-        /// delete Materiale
-        /// </summary>
-        /// <param name="Materiale"></param>
-        public void DeleteMateriale(Materiale Materiale)
-        {
-            _ApplicationDbContext.Remove(Materiale);
+            return _context.Materiali
+                .Include(m => m.Immagini)
+                .Include(m => m.Classificazioni)
+                .FirstOrDefault(m => m.Id == id);
         }
 
-        /// <summary>
-        /// edit Materiale data
-        /// </summary>
-        /// <param name="MaterialeId"></param>
-        /// <param name="Materiale"></param>
-        public bool EditMateriale(int MaterialeId, Materiale Materiale)
+        public Materiale AddMateriale(Materiale materiale)
         {
-            Materiale? existingEntity = _ApplicationDbContext.Materiali.Find(MaterialeId);
+            _context.Materiali.Add(materiale);
+            return materiale;
+        }
+
+        public void DeleteMateriale(Materiale materiale)
+        {
+            _context.Materiali.Remove(materiale);
+        }
+
+        public bool EditMateriale(string codiceMateriale, Materiale materiale)
+        {
+            var existingEntity = _context.Materiali.Find(codiceMateriale);
             if (existingEntity == null)
             {
                 return false;
             }
-            else
-            {
-                _ApplicationDbContext.Entry(existingEntity).State = EntityState.Detached;
-            }
-            _ApplicationDbContext.Attach(Materiale);
-            _ApplicationDbContext.Entry(Materiale).State = EntityState.Modified;
+
+            _context.Entry(existingEntity).State = EntityState.Detached;
+            _context.Attach(materiale);
+            _context.Entry(materiale).State = EntityState.Modified;
             return true;
         }
 
-        /// <summary>
-        /// add Materiale to database
-        /// </summary>
-        /// <param name="Materiale"></param>
-        /// <returns></returns>
-        public Materiale AddMateriale(Materiale Materiale)
+        public bool ExistsByCodice(string codiceMateriale)
         {
-            EntityEntry<Materiale> x = _ApplicationDbContext.Materiali.Add(Materiale);
-            return x.Entity;
-
+            return _context.Materiali.Any(m => m.CodiceMateriale == codiceMateriale);
         }
 
-        /// <summary>
-        ///  get Materiale Magazzini by Materiale ID 
-        /// </summary>
-        /// <param name="MaterialeId"></param>
-        /// <returns></returns>
-        public List<Magazzino> GetMagazziniByMaterialeId(int MaterialeId)
+        public Materiale? GetByCodiceMateriale(string codiceMateriale)
         {
-            List<Magazzino> Magazzini = new List<Magazzino>();
-            Materiale? Materiale = _ApplicationDbContext.Materiali
-                .Include(x => x.MaterialeMagazzini)
-                .ThenInclude(x => x.Magazzino).FirstOrDefault(x => x.Id == MaterialeId);
-            if (Materiale != null)
-            {
-                Magazzini = Materiale.MaterialeMagazzini.Select(x => x.Magazzino).ToList();
-            }
-            return Magazzini;
+            return _context.Materiali
+                .Include(m => m.Immagini)
+                .Include(m => m.Classificazioni)
+                .FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
+        }
+
+        public List<Magazzino> GetMagazziniByMaterialeId(int materialeId)
+        {
+            var materiale = _context.Materiali
+                .Include(m => m.MaterialeMagazzini)
+                .ThenInclude(mm => mm.Magazzino)
+                .FirstOrDefault(m => m.Id == materialeId);
+
+            return materiale?.MaterialeMagazzini.Select(mm => mm.Magazzino).ToList() ?? new List<Magazzino>();
+        }
+
+        public new void SaveChanges()
+        {
+            _context.SaveChanges();
         }
     }
 }

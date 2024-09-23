@@ -1,22 +1,15 @@
-﻿using MagazziniMaterialiAPI;
-using MagazziniMaterialiAPI.Models.Entity;
+﻿using MagazziniMaterialiAPI.Models.Entity;
 using MagazziniMaterialiAPI.Models.Entity.DTOs;
 using MagazziniMaterialiAPI.Repositories;
 
 
-namespace MagazziniMaterialiAPI
+namespace MagazziniMaterialiAPI.Services
 {
-    public class MagazziniService : IMagazziniService
+    public class MagazziniService(IMagazzinoRepository MagazzinoRepository, IMagazzinoMapper MagazzinoMapper, IMaterialeMapper MaterialeMapper) : IMagazziniService
     {
-        private readonly IMagazzinoRepository _MagazzinoRepository;
-        private readonly IMagazzinoMapper _MagazzinoMapper;
-        private readonly IMaterialeMapper _MaterialeMapper;
-        public MagazziniService(IMagazzinoRepository MagazzinoRepository, IMagazzinoMapper MagazzinoMapper, IMaterialeMapper MaterialeMapper)
-        {
-            _MagazzinoRepository = MagazzinoRepository;
-            _MaterialeMapper = MaterialeMapper;
-            _MagazzinoMapper = MagazzinoMapper;
-        }
+        private readonly IMagazzinoRepository _MagazzinoRepository = MagazzinoRepository;
+        private readonly IMagazzinoMapper _MagazzinoMapper = MagazzinoMapper;
+        private readonly IMaterialeMapper _MaterialeMapper = MaterialeMapper;
 
         /// <summary>
         /// get list of Magazzini DTO
@@ -24,7 +17,7 @@ namespace MagazziniMaterialiAPI
         /// <returns></returns>
         public List<MagazzinoDTO> GetAll()
         {
-            List<MagazzinoDTO> Magazzini = new List<MagazzinoDTO>();
+            List<MagazzinoDTO> Magazzini = [];
             Magazzini = _MagazzinoRepository.GetAll().Select(g => _MagazzinoMapper.MapToMagazzinoDTO(g)).ToList();
             return Magazzini;
         }

@@ -1,7 +1,7 @@
 ﻿using MagazziniMaterialiAPI.Models.Entity;
 using MagazziniMaterialiAPI.Models.Entity.DTOs;
 
-namespace MagazziniMaterialiAPI
+namespace MagazziniMaterialiAPI.Services
 {
     public interface IMagazziniService
     {

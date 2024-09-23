@@ -1,7 +1,7 @@
 ﻿using MagazziniMaterialiAPI.Models.Entity;
 
 
-namespace MagazziniMaterialiAPI
+namespace MagazziniMaterialiAPI.Services
 {
     public interface IMaterialeMagazziniService
     {

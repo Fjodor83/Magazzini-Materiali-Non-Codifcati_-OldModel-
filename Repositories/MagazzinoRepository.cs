@@ -7,13 +7,9 @@ using MagazziniMaterialiAPI.Models.Entity;
 
 namespace MagazziniMaterialiAPI.Repositories
 {
-    public class MagazzinoRepository : BaseRepository, IMagazzinoRepository
+    public class MagazzinoRepository(ApplicationDbContext ApplicationDbContext) : BaseRepository(ApplicationDbContext), IMagazzinoRepository
     {
-        private ApplicationDbContext _ApplicationDbContext;
-        public MagazzinoRepository(ApplicationDbContext ApplicationDbContext) : base(ApplicationDbContext)
-        {
-            _ApplicationDbContext = ApplicationDbContext;
-        }
+        private readonly ApplicationDbContext _ApplicationDbContext = ApplicationDbContext;
 
         /// <summary>
         /// get all Magazzini

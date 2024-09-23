@@ -1,105 +1,99 @@
-﻿using MagazziniMaterialiAPI;
-using MagazziniMaterialiAPI.Models.Entity;
+﻿using MagazziniMaterialiAPI.Models.Entity;
 using MagazziniMaterialiAPI.Models.Entity.DTOs;
 using MagazziniMaterialiAPI.Repositories;
+using Microsoft.Extensions.Logging;
+
 namespace MagazziniMaterialiAPI.Services
 {
     public class MaterialiService : IMaterialiService
     {
-        private readonly IMaterialeRepository _MaterialeRepository;
-        private readonly IMaterialeMapper _MaterialeMapper;
-        private readonly IMagazzinoMapper _MagazzinoMapper;
-        public MaterialiService(IMaterialeRepository MaterialeRepository, IMaterialeMapper MaterialeMapper, IMagazzinoMapper MagazzinoMapper)
+        private readonly IMaterialeRepository _materialeRepository;
+        private readonly IMaterialeMapper _materialeMapper;
+        private readonly IMagazzinoMapper _magazzinoMapper;
+        private readonly ILogger<MaterialiService> _logger;
+
+        public MaterialiService(IMaterialeRepository materialeRepository, ILogger<MaterialiService> logger, IMaterialeMapper materialeMapper, IMagazzinoMapper magazzinoMapper)
         {
-            _MaterialeRepository = MaterialeRepository;
-            _MaterialeMapper = MaterialeMapper;
-            _MagazzinoMapper = MagazzinoMapper;
+            _materialeRepository = materialeRepository;
+            _logger = logger;
+            _materialeMapper = materialeMapper;
+            _magazzinoMapper = magazzinoMapper;
         }
 
-        /// <summary>
-        /// get list of Materiali DTO
-        /// </summary>
-        /// <returns></returns>
         public List<MaterialeDTO> GetAll()
         {
-            List<MaterialeDTO> Materiali = new List<MaterialeDTO>();
-            Materiali = _MaterialeRepository.GetAll().Select(g => _MaterialeMapper.MapToMaterialeDTO(g)).ToList();
-            return Materiali;
+            try
+            {
+                return _materialeRepository.GetAll()
+                    .Select(g => _materialeMapper.MapToMaterialeDTO(g))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero di tutti i materiali.");
+                throw new InvalidOperationException("Errore durante il recupero dei materiali.", ex);
+            }
         }
 
-        /// <summary>
-        /// get MaterialeDTO by Materiale Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public MaterialeDTO? GetById(int id)
         {
-            Materiale? Materiale = _MaterialeRepository.GetById(id);
-            if (Materiale == null)
-            {
-                return null;
-            }
-            MaterialeDTO MaterialeDTO = _MaterialeMapper.MapToMaterialeDTO(Materiale);
-            return MaterialeDTO;
+            var materiale = _materialeRepository.GetById(id);
+            return materiale != null ? _materialeMapper.MapToMaterialeDTO(materiale) : null;
         }
 
-        /// <summary>
-        /// add Materiale to db
-        /// </summary>
-        /// <param name="Materiale"></param>
-        /// <returns></returns>
-        public Materiale AddMateriale(MaterialeDTO Materiale)
+        public Materiale AddMateriale(MaterialeDTO materialeDTO)
         {
-            Materiale MaterialeEntity = _MaterialeMapper.MapToMateriale(Materiale);
-            return _MaterialeRepository.AddMateriale(MaterialeEntity);
+            var materialeEntity = _materialeMapper.MapToMateriale(materialeDTO);
+            _materialeRepository.AddMateriale(materialeEntity);
+            _materialeRepository.SaveChanges();
+            return materialeEntity;
         }
 
-        /// <summary>
-        /// delete Materiale 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public bool DeleteMateriale(int id)
         {
-            Materiale? Materiale = _MaterialeRepository.GetById(id); ;
-            if (Materiale == null)
+            var materiale = _materialeRepository.GetById(id);
+            if (materiale == null)
             {
                 return false;
             }
-            _MaterialeRepository.DeleteMateriale(Materiale);
+
+            _materialeRepository.DeleteMateriale(materiale);
+            _materialeRepository.SaveChanges();
             return true;
-
         }
 
-        /// <summary>
-        /// edit Materiale data 
-        /// </summary>
-        /// <param name="MaterialeId"></param>
-        /// <param name="MaterialeDTO"></param>
-        /// <returns></returns>
-        public bool EditMateriale(int MaterialeId, MaterialeDTO MaterialeDTO)
+        public bool EditMateriale(string codiceMateriale, MaterialeDTO materialeDTO)
         {
-            Materiale MaterialeEntity = _MaterialeMapper.MapToMateriale(MaterialeDTO);
-            return _MaterialeRepository.EditMateriale(MaterialeId, MaterialeEntity);
-        }
-        /// <summary>
-        ///  get Materiale Magazzini by Materiale ID 
-        /// </summary>
-        /// <param name="MaterialeId"></param>
-        /// <returns></returns>
-        public List<MagazzinoDTO> GetMagazziniByMaterialeId(int MaterialeId)
-        {
+            var materialeEntity = _materialeMapper.MapToMateriale(materialeDTO);
+            if (_materialeRepository.EditMateriale(codiceMateriale, materialeEntity))
             {
-                return _MaterialeRepository.GetMagazziniByMaterialeId(MaterialeId).Select(g => _MagazzinoMapper.MapToMagazzinoDTO(g)).ToList();
+                _materialeRepository.SaveChanges();
+                return true;
             }
+            return false;
         }
-        /// <summary>
-        /// save changes to DB
-        /// </summary>
+
+        public List<MagazzinoDTO> GetMagazziniByMaterialeId(int materialeId)
+        {
+            return _materialeRepository.GetMagazziniByMaterialeId(materialeId)
+                .Select(m => _magazzinoMapper.MapToMagazzinoDTO(m))
+                .ToList();
+        }
+
+        public bool ExistsByCodice(string codiceMateriale)
+        {
+            return _materialeRepository.ExistsByCodice(codiceMateriale);
+        }
+
+        public MaterialeDTO? GetByCodiceMateriale(string codiceMateriale)
+        {
+            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
+            return materiale != null ? _materialeMapper.MapToMaterialeDTO(materiale) : null;
+        }
+
         public void SaveChanges()
         {
-            _MaterialeRepository.SaveChanges();
+            _materialeRepository.SaveChanges();
         }
-
     }
 }

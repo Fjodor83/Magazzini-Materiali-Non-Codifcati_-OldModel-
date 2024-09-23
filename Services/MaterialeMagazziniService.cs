@@ -1,8 +1,7 @@
-﻿
-using MagazziniMaterialiAPI.Models.Entity;
+﻿using MagazziniMaterialiAPI.Models.Entity;
 using MagazziniMaterialiAPI.Repositories;
 
-namespace MagazziniMaterialiAPI
+namespace MagazziniMaterialiAPI.Services
 {
     public class MaterialeMagazziniService : IMaterialeMagazziniService
     {
