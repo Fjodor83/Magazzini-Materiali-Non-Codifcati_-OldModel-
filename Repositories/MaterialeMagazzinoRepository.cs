@@ -17,12 +17,12 @@ namespace MagazziniMaterialiAPI.Repositories
         /// <summary>
         /// get MaterialeMagazzino by Magazzino id and Materiale id
         /// </summary>
-        /// <param name="MaterialeId"></param>
+        /// <param name="codiceMateriale"></param>
         /// <param name="MagazzinoId"></param>
         /// <returns></returns>
-        public MaterialeMagazzino? GetMaterialeMagazzino(int MaterialeId, int MagazzinoId)
+        public MaterialeMagazzino? GetMaterialeMagazzino(string codiceMateriale, int MagazzinoId)
         {
-            return _ApplicationDbContext.MaterialeMagazzini.FirstOrDefault(x => x.MaterialeID == MaterialeId && x.MagazzinoID == MagazzinoId);
+            return _ApplicationDbContext.MaterialeMagazzini.FirstOrDefault(x => x.CodiceMateriale == codiceMateriale && x.MagazzinoID == MagazzinoId);
         }
 
 

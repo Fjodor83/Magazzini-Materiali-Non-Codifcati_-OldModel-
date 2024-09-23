@@ -5,8 +5,8 @@ namespace MagazziniMaterialiAPI.Services
 {
     public interface IMaterialeMagazziniService
     {
-        public bool DeleteMaterialeMagazzino(int MagazzinoId, int MaterialeId);
-        public MaterialeMagazzino AddMaterialeMagazzino(int MagazzinoId, int MaterialeId);
+        public bool DeleteMaterialeMagazzino(int MagazzinoId, string codiceMateriale);
+        public MaterialeMagazzino AddMaterialeMagazzino(int MagazzinoId, string codiceMateriale);
         public void SaveChanges();
 
     }

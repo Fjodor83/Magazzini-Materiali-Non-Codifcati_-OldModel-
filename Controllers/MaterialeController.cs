@@ -32,13 +32,7 @@ namespace MagazziniMaterialiAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{materialeId:int}")]
-        public ActionResult<MaterialeDTO> GetMaterialeById(int materialeId)
-        {
-            var materiale = _materialiService.GetById(materialeId);
-            if (materiale == null) return NotFound();
-            return Ok(materiale);
-        }
+        
 
         [HttpGet("{codiceMateriale}")]
         public ActionResult<MaterialeDTO> GetMaterialeByCodiceMateriale(string codiceMateriale)
@@ -85,7 +79,8 @@ namespace MagazziniMaterialiAPI.Controllers
 
                 // Mappa il materiale al DTO e restituisci il risultato
                 var materialeDTOResult = _materialeMapper.MapToMaterialeDTO(nuovoMateriale);
-                return CreatedAtAction(nameof(GetMaterialeById), new { materialeId = nuovoMateriale.Id }, materialeDTOResult);
+                return CreatedAtAction(nameof(GetMaterialeByCodiceMateriale), new { codiceMateriale = nuovoMateriale.CodiceMateriale }, materialeDTOResult);
+
             }
             catch (Exception ex)
             {
@@ -106,10 +101,10 @@ namespace MagazziniMaterialiAPI.Controllers
             return Ok(materialeDTO);
         }
 
-        [HttpDelete("{materialeId}")]
-        public ActionResult DeleteMateriale(int materialeId)
+        [HttpDelete("{codiceMateriale}")]
+        public ActionResult DeleteMateriale(string codiceMateriale)
         {
-            var isDeleted = _materialiService.DeleteMateriale(materialeId);
+            var isDeleted = _materialiService.DeleteMateriale(codiceMateriale);
             if (!isDeleted) return NotFound("Materiale non trovato.");
 
             _materialiService.SaveChanges();

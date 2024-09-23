@@ -118,20 +118,20 @@ namespace MagazziniMaterialiAPI.Controllers
             return Ok("Magazzino Deleted Successfully");
         }
 
-        [HttpPost("registerMaterialeMagazzino/{MagazzinoId}/{MaterialeId}")]
-        public ActionResult RegisterMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
+        [HttpPost("registerMaterialeMagazzino/{MagazzinoId}/{codiceMateriale}")]
+        public ActionResult RegisterMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] string codiceMateriale)
         {
 
-            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, codiceMateriale);
             _MaterialeMagazziniService.SaveChanges();
             return Ok("Materiale Registered to Magazzino Successfully");
         }
 
-        [HttpDelete("registerMaterialeMagazzino/{MagazzinoId}/{MaterialeId}")]
-        public ActionResult DeleteMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] int MaterialeId)
+        [HttpDelete("registerMaterialeMagazzino/{MagazzinoId}/{codiceMateriale}")]
+        public ActionResult DeleteMaterialeMagazzino([FromRoute] int MagazzinoId, [FromRoute] string codiceMateriale)
         {
 
-            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, MaterialeId);
+            MaterialeMagazzino MaterialeMagazzino = _MaterialeMagazziniService.AddMaterialeMagazzino(MagazzinoId, codiceMateriale);
             _MaterialeMagazziniService.SaveChanges();
             return Ok("Materiale Deleted from Magazzino Successfully");
         }

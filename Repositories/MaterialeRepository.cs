@@ -24,12 +24,12 @@ namespace MagazziniMaterialiAPI.Repositories
                 .ToList();
         }
 
-        public Materiale? GetById(int id)
+        public Materiale? GetByCodiceMateriale(string codiceMateriale)
         {
             return _context.Materiali
                 .Include(m => m.Immagini)
                 .Include(m => m.Classificazioni)
-                .FirstOrDefault(m => m.Id == id);
+                .FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
         }
 
         public Materiale AddMateriale(Materiale materiale)
@@ -45,7 +45,7 @@ namespace MagazziniMaterialiAPI.Repositories
 
         public bool EditMateriale(string codiceMateriale, Materiale materiale)
         {
-            var existingEntity = _context.Materiali.Find(codiceMateriale);
+            var existingEntity = _context.Materiali.FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
             if (existingEntity == null)
             {
                 return false;
@@ -62,20 +62,14 @@ namespace MagazziniMaterialiAPI.Repositories
             return _context.Materiali.Any(m => m.CodiceMateriale == codiceMateriale);
         }
 
-        public Materiale? GetByCodiceMateriale(string codiceMateriale)
-        {
-            return _context.Materiali
-                .Include(m => m.Immagini)
-                .Include(m => m.Classificazioni)
-                .FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
-        }
+        
 
-        public List<Magazzino> GetMagazziniByMaterialeId(int materialeId)
+        public List<Magazzino> GetMagazziniByMaterialeId(string codiceMateriale)
         {
             var materiale = _context.Materiali
                 .Include(m => m.MaterialeMagazzini)
                 .ThenInclude(mm => mm.Magazzino)
-                .FirstOrDefault(m => m.Id == materialeId);
+                .FirstOrDefault(m => m.CodiceMateriale == codiceMateriale);
 
             return materiale?.MaterialeMagazzini.Select(mm => mm.Magazzino).ToList() ?? new List<Magazzino>();
         }

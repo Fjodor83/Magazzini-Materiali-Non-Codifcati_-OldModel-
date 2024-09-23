@@ -72,7 +72,7 @@ namespace MagazziniMaterialiAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CodiceMateriale = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CodiceMateriale = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Descrizione = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataCreazione = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -80,6 +80,7 @@ namespace MagazziniMaterialiAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Materiali", x => x.Id);
+                    table.UniqueConstraint("AK_Materiali_CodiceMateriale", x => x.CodiceMateriale);
                 });
 
             migrationBuilder.CreateTable(
@@ -235,7 +236,7 @@ namespace MagazziniMaterialiAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    CodiceMateriale = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     MagazzinoId = table.Column<int>(type: "int", nullable: false),
                     QuantitaDisponibile = table.Column<int>(type: "int", nullable: false),
                     QuantitaImpegnata = table.Column<int>(type: "int", nullable: false)
@@ -250,10 +251,10 @@ namespace MagazziniMaterialiAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Giacenze_Materiali_MaterialeId",
-                        column: x => x.MaterialeId,
+                        name: "FK_Giacenze_Materiali_CodiceMateriale",
+                        column: x => x.CodiceMateriale,
                         principalTable: "Materiali",
-                        principalColumn: "Id",
+                        principalColumn: "CodiceMateriale",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -275,7 +276,35 @@ namespace MagazziniMaterialiAPI.Migrations
                         name: "FK_MaterialeImmagini_Materiali_MaterialeId",
                         column: x => x.MaterialeId,
                         principalTable: "Materiali",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MaterialeMagazzini",
+                columns: table => new
+                {
+                    MaterialeMagazzinoID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CodiceMateriale = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    MagazzinoID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MaterialeMagazzini", x => x.MaterialeMagazzinoID);
+                    table.ForeignKey(
+                        name: "FK_MaterialeMagazzini_Magazzini_MagazzinoID",
+                        column: x => x.MagazzinoID,
+                        principalTable: "Magazzini",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MaterialeMagazzini_Materiali_MaterialeId",
+                        column: x => x.MaterialeId,
+                        principalTable: "Materiali",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -285,7 +314,7 @@ namespace MagazziniMaterialiAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TipoMovimentazione = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    CodiceMateriale = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     MagazzinoId = table.Column<int>(type: "int", nullable: false),
                     Quantita = table.Column<int>(type: "int", nullable: false),
                     DataMovimentazione = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -301,10 +330,10 @@ namespace MagazziniMaterialiAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Movimentazioni_Materiali_MaterialeId",
-                        column: x => x.MaterialeId,
+                        name: "FK_Movimentazioni_Materiali_CodiceMateriale",
+                        column: x => x.CodiceMateriale,
                         principalTable: "Materiali",
-                        principalColumn: "Id",
+                        principalColumn: "CodiceMateriale",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -315,17 +344,17 @@ namespace MagazziniMaterialiAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MissionePrelievoId = table.Column<int>(type: "int", nullable: false),
-                    MaterialeId = table.Column<int>(type: "int", nullable: false),
+                    CodiceMateriale = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     QuantitaPrelevata = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DettagliMissione", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DettagliMissione_Materiali_MaterialeId",
-                        column: x => x.MaterialeId,
+                        name: "FK_DettagliMissione_Materiali_CodiceMateriale",
+                        column: x => x.CodiceMateriale,
                         principalTable: "Materiali",
-                        principalColumn: "Id",
+                        principalColumn: "CodiceMateriale",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DettagliMissione_MissioniPrelievo_MissionePrelievoId",
@@ -380,9 +409,9 @@ namespace MagazziniMaterialiAPI.Migrations
                 column: "MaterialeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DettagliMissione_MaterialeId",
+                name: "IX_DettagliMissione_CodiceMateriale",
                 table: "DettagliMissione",
-                column: "MaterialeId");
+                column: "CodiceMateriale");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DettagliMissione_MissionePrelievoId",
@@ -390,18 +419,28 @@ namespace MagazziniMaterialiAPI.Migrations
                 column: "MissionePrelievoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Giacenze_CodiceMateriale",
+                table: "Giacenze",
+                column: "CodiceMateriale");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Giacenze_MagazzinoId",
                 table: "Giacenze",
                 column: "MagazzinoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Giacenze_MaterialeId",
-                table: "Giacenze",
+                name: "IX_MaterialeImmagini_MaterialeId",
+                table: "MaterialeImmagini",
                 column: "MaterialeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MaterialeImmagini_MaterialeId",
-                table: "MaterialeImmagini",
+                name: "IX_MaterialeMagazzini_MagazzinoID",
+                table: "MaterialeMagazzini",
+                column: "MagazzinoID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MaterialeMagazzini_MaterialeId",
+                table: "MaterialeMagazzini",
                 column: "MaterialeId");
 
             migrationBuilder.CreateIndex(
@@ -410,14 +449,14 @@ namespace MagazziniMaterialiAPI.Migrations
                 column: "OperatoreId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Movimentazioni_CodiceMateriale",
+                table: "Movimentazioni",
+                column: "CodiceMateriale");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Movimentazioni_MagazzinoId",
                 table: "Movimentazioni",
                 column: "MagazzinoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Movimentazioni_MaterialeId",
-                table: "Movimentazioni",
-                column: "MaterialeId");
         }
 
         /// <inheritdoc />
@@ -449,6 +488,9 @@ namespace MagazziniMaterialiAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "MaterialeImmagini");
+
+            migrationBuilder.DropTable(
+                name: "MaterialeMagazzini");
 
             migrationBuilder.DropTable(
                 name: "Movimentazioni");

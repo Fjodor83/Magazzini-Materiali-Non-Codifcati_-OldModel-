@@ -35,9 +35,9 @@ namespace MagazziniMaterialiAPI.Services
             }
         }
 
-        public MaterialeDTO? GetById(int id)
+        public MaterialeDTO? GetByCodiceMateriale(string codiceMateriale)
         {
-            var materiale = _materialeRepository.GetById(id);
+            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
             return materiale != null ? _materialeMapper.MapToMaterialeDTO(materiale) : null;
         }
 
@@ -49,9 +49,9 @@ namespace MagazziniMaterialiAPI.Services
             return materialeEntity;
         }
 
-        public bool DeleteMateriale(int id)
+        public bool DeleteMateriale(string codiceMateriale)
         {
-            var materiale = _materialeRepository.GetById(id);
+            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
             if (materiale == null)
             {
                 return false;
@@ -73,9 +73,9 @@ namespace MagazziniMaterialiAPI.Services
             return false;
         }
 
-        public List<MagazzinoDTO> GetMagazziniByMaterialeId(int materialeId)
+        public List<MagazzinoDTO> GetMagazziniByMaterialeId(string codiceMateriale)
         {
-            return _materialeRepository.GetMagazziniByMaterialeId(materialeId)
+            return _materialeRepository.GetMagazziniByMaterialeId(codiceMateriale)
                 .Select(m => _magazzinoMapper.MapToMagazzinoDTO(m))
                 .ToList();
         }
@@ -85,11 +85,6 @@ namespace MagazziniMaterialiAPI.Services
             return _materialeRepository.ExistsByCodice(codiceMateriale);
         }
 
-        public MaterialeDTO? GetByCodiceMateriale(string codiceMateriale)
-        {
-            var materiale = _materialeRepository.GetByCodiceMateriale(codiceMateriale);
-            return materiale != null ? _materialeMapper.MapToMaterialeDTO(materiale) : null;
-        }
 
         public void SaveChanges()
         {

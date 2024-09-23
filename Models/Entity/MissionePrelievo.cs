@@ -22,7 +22,7 @@ namespace MagazziniMaterialiAPI.Models.Entity
         public int Id { get; set; }
         public int MissionePrelievoId { get; set; }
         public MissionePrelievo MissionePrelievo { get; set; }
-        public int MaterialeId { get; set; }
+        public string CodiceMateriale { get; set; }
         public Materiale Materiale { get; set; }
         public int QuantitaPrelevata { get; set; }
     }

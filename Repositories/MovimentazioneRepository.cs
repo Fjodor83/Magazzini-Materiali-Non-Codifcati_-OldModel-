@@ -35,11 +35,11 @@ namespace MagazziniMaterialiAPI.Repositories
                 .ToList();
         }
 
-        public IEnumerable<Movimentazione> GetByMaterialeId(int materialeId)
+        public IEnumerable<Movimentazione> GetByMaterialeId(string codiceMateriale)
         {
             return _context.Movimentazioni
                 .Include(m => m.Materiale)
-                .Where(m => m.MaterialeId == materialeId)
+                .Where(m => m.CodiceMateriale == codiceMateriale)
                 .ToList();
         }
 
@@ -107,10 +107,10 @@ namespace MagazziniMaterialiAPI.Repositories
             }
         }
 
-        public bool EsisteMovimentazioneSuccessiva(int materialeId, DateTime dataMovimentazione)
+        public bool EsisteMovimentazioneSuccessiva(string codiceMateriale, DateTime dataMovimentazione)
         {
             return _context.Movimentazioni
-                .Any(m => m.MaterialeId == materialeId && m.DataMovimentazione > dataMovimentazione);
+                .Any(m => m.CodiceMateriale == codiceMateriale && m.DataMovimentazione > dataMovimentazione);
         }
     }
 }

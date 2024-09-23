@@ -3,7 +3,7 @@
     public class Giacenza
     {
         public int Id { get; set; }
-        public int MaterialeId { get; set; }
+        public string CodiceMateriale { get; set; }
         public Materiale Materiale { get; set; }
         public int MagazzinoId { get; set; }
         public Magazzino Magazzino { get; set; }

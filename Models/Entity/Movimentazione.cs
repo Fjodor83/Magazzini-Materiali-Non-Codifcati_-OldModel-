@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string TipoMovimentazione { get; set; } // "Ingresso" o "Uscita"
-        public int MaterialeId { get; set; }
+        public string CodiceMateriale { get; set; }
         public Materiale Materiale { get; set; }
         public int MagazzinoId { get; set; }
         public Magazzino Magazzino { get; set; }
@@ -13,3 +13,4 @@
         public string Nota { get; set; }
     }
 }
+ 

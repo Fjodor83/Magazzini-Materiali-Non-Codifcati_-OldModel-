@@ -2,7 +2,7 @@
 {
     public class AggiungiMaterialeDto
     {
-        public int MaterialeId { get; set; }
+        public string codiceMateriale { get; set; }
         public int Quantita { get; set; }
     }
 }

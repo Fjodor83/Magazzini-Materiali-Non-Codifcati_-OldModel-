@@ -31,7 +31,7 @@ namespace MagazziniMaterialiAPI.Services
             return missione;
         }
 
-        public void AggiungiMaterialeAMissione(int missioneId, int materialeId, int quantita)
+        public void AggiungiMaterialeAMissione(int missioneId, string codiceMateriale, int quantita)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -42,7 +42,7 @@ namespace MagazziniMaterialiAPI.Services
                     throw new InvalidOperationException("Missione non trovata o non attiva.");
                 }
 
-                var giacenza = _context.Giacenze.FirstOrDefault(g => g.MaterialeId == materialeId);
+                var giacenza = _context.Giacenze.FirstOrDefault(g => g.CodiceMateriale == codiceMateriale);
                 if (giacenza == null || giacenza.QuantitaDisponibile < quantita)
                 {
                     throw new InvalidOperationException("Giacenza insufficiente per il prelievo del materiale.");
@@ -54,7 +54,7 @@ namespace MagazziniMaterialiAPI.Services
                 var dettaglio = new DettaglioMissione
                 {
                     MissionePrelievoId = missioneId,
-                    MaterialeId = materialeId,
+                    CodiceMateriale = codiceMateriale,
                     QuantitaPrelevata = quantita
                 };
                 missione.DettagliMissione.Add(dettaglio);
@@ -87,7 +87,7 @@ namespace MagazziniMaterialiAPI.Services
 
                 foreach (var dettaglio in missione.DettagliMissione)
                 {
-                    var giacenza = _context.Giacenze.FirstOrDefault(g => g.MaterialeId == dettaglio.MaterialeId);
+                    var giacenza = _context.Giacenze.FirstOrDefault(g => g.CodiceMateriale == dettaglio.CodiceMateriale);
                     giacenza.QuantitaImpegnata -= dettaglio.QuantitaPrelevata;
                 }
 

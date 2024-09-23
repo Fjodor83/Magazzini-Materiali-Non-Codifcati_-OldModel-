@@ -12,21 +12,21 @@ namespace MagazziniMaterialiAPI.Repositories
             _context = context;
         }
 
-        public Giacenza GetGiacenza(int magazzinoId, int materialeId)
+        public Giacenza GetGiacenza(int magazzinoId, string codiceMateriale)
         {
             return _context.Giacenze
-                .FirstOrDefault(g => g.MagazzinoId == magazzinoId && g.MaterialeId == materialeId);
+                .FirstOrDefault(g => g.MagazzinoId == magazzinoId && g.CodiceMateriale == codiceMateriale);
         }
 
-        public void AggiornaGiacenza(int magazzinoId, int materialeId, int quantita)
+        public void AggiornaGiacenza(int magazzinoId, string codiceMateriale, int quantita)
         {
-            var giacenza = GetGiacenza(magazzinoId, materialeId);
+            var giacenza = GetGiacenza(magazzinoId, codiceMateriale);
             if (giacenza == null)
             {
                 giacenza = new Giacenza
                 {
                     MagazzinoId = magazzinoId,
-                    MaterialeId = materialeId,
+                    CodiceMateriale = codiceMateriale,
                     QuantitaDisponibile = quantita
                 };
                 _context.Giacenze.Add(giacenza);

@@ -31,7 +31,7 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpPost("ingresso")]
         public IActionResult MovimentazioneIngresso([FromBody] Movimentazione movimentazione)
         {
-            var materiale = _materialeRepository.GetById(movimentazione.MaterialeId);
+            var materiale = _materialeRepository.GetByCodiceMateriale(movimentazione.CodiceMateriale);
 
             if (materiale == null)
             {
@@ -42,9 +42,9 @@ namespace MagazziniMaterialiAPI.Controllers
             _movimentazioneRepository.Add(movimentazione);
 
             // Aggiorna la giacenza aggiungendo la quantità
-            _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.MaterialeId, movimentazione.Quantita);
+            _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.CodiceMateriale, movimentazione.Quantita);
 
-            _logger.LogInformation($"Movimentazione di ingresso per il materiale {movimentazione.MaterialeId} registrata con successo.");
+            _logger.LogInformation($"Movimentazione di ingresso per il materiale {movimentazione.CodiceMateriale} registrata con successo.");
 
             return Ok();
         }
@@ -52,7 +52,7 @@ namespace MagazziniMaterialiAPI.Controllers
         [HttpPost("uscita")]
         public IActionResult MovimentazioneUscita([FromBody] Movimentazione movimentazione)
         {
-            var giacenza = _giacenzaRepository.GetGiacenza(movimentazione.MagazzinoId, movimentazione.MaterialeId);
+            var giacenza = _giacenzaRepository.GetGiacenza(movimentazione.MagazzinoId, movimentazione.CodiceMateriale);
 
             if (giacenza == null || giacenza.QuantitaDisponibile < movimentazione.Quantita)
             {
@@ -60,12 +60,12 @@ namespace MagazziniMaterialiAPI.Controllers
             }
 
             // Aggiorna la giacenza sottraendo la quantità
-            _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.MaterialeId, -movimentazione.Quantita);
+            _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.CodiceMateriale, -movimentazione.Quantita);
 
             // Aggiungi la movimentazione
             _movimentazioneRepository.Add(movimentazione);
 
-            _logger.LogInformation($"Movimentazione di uscita per il materiale {movimentazione.MaterialeId} registrata con successo.");
+            _logger.LogInformation($"Movimentazione di uscita per il materiale {movimentazione.CodiceMateriale} registrata con successo.");
 
             return Ok();
         }
@@ -81,7 +81,7 @@ namespace MagazziniMaterialiAPI.Controllers
             }
 
             // Controlla se ci sono movimentazioni successive
-            var hasMovimentazioniSuccessive = _movimentazioneRepository.EsisteMovimentazioneSuccessiva(movimentazione.MaterialeId, movimentazione.DataMovimentazione);
+            var hasMovimentazioniSuccessive = _movimentazioneRepository.EsisteMovimentazioneSuccessiva(movimentazione.CodiceMateriale, movimentazione.DataMovimentazione);
 
             if (hasMovimentazioniSuccessive)
             {
@@ -91,11 +91,11 @@ namespace MagazziniMaterialiAPI.Controllers
             // Storna la movimentazione (aggiunge la quantità in uscita, sottrae la quantità in ingresso)
             if (movimentazione.TipoMovimentazione == "Ingresso")
             {
-                _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.MaterialeId, -movimentazione.Quantita);
+                _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.CodiceMateriale, -movimentazione.Quantita);
             }
             else if (movimentazione.TipoMovimentazione == "Uscita")
             {
-                _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.MaterialeId, movimentazione.Quantita);
+                _giacenzaRepository.AggiornaGiacenza(movimentazione.MagazzinoId, movimentazione.CodiceMateriale, movimentazione.Quantita);
             }
 
             _movimentazioneRepository.Delete(movimentazione.Id);

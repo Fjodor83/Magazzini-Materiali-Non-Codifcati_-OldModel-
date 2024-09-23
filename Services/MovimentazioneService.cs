@@ -12,17 +12,17 @@ namespace MagazziniMaterialiAPI
             _context = context;
         }
 
-        public void RegistraMovimentazioneIngresso(int materialeId, int magazzinoId, int quantita, string nota)
+        public void RegistraMovimentazioneIngresso(string codiceMateriale, int magazzinoId, int quantita, string nota)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                var giacenza = _context.Giacenze.FirstOrDefault(g => g.MaterialeId == materialeId && g.MagazzinoId == magazzinoId);
+                var giacenza = _context.Giacenze.FirstOrDefault(g => g.CodiceMateriale == codiceMateriale && g.MagazzinoId == magazzinoId);
                 if (giacenza == null)
                 {
                     giacenza = new Giacenza
                     {
-                        MaterialeId = materialeId,
+                        CodiceMateriale = codiceMateriale,
                         MagazzinoId = magazzinoId,
                         QuantitaDisponibile = 0,
                         QuantitaImpegnata = 0
@@ -35,7 +35,7 @@ namespace MagazziniMaterialiAPI
                 var movimentazione = new Movimentazione
                 {
                     TipoMovimentazione = "Ingresso",
-                    MaterialeId = materialeId,
+                    CodiceMateriale = codiceMateriale,
                     MagazzinoId = magazzinoId,
                     Quantita = quantita,
                     DataMovimentazione = DateTime.Now,
@@ -53,12 +53,12 @@ namespace MagazziniMaterialiAPI
             }
         }
 
-        public void RegistraMovimentazioneUscita(int materialeId, int magazzinoId, int quantita, string nota)
+        public void RegistraMovimentazioneUscita(string codiceMateriale, int magazzinoId, int quantita, string nota)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                var giacenza = _context.Giacenze.FirstOrDefault(g => g.MaterialeId == materialeId && g.MagazzinoId == magazzinoId);
+                var giacenza = _context.Giacenze.FirstOrDefault(g => g.CodiceMateriale == codiceMateriale && g.MagazzinoId == magazzinoId);
                 if (giacenza == null || giacenza.QuantitaDisponibile < quantita)
                 {
                     throw new InvalidOperationException("Giacenza insufficiente per l'uscita del materiale.");
@@ -69,7 +69,7 @@ namespace MagazziniMaterialiAPI
                 var movimentazione = new Movimentazione
                 {
                     TipoMovimentazione = "Uscita",
-                    MaterialeId = materialeId,
+                    CodiceMateriale = codiceMateriale,
                     MagazzinoId = magazzinoId,
                     Quantita = quantita,
                     DataMovimentazione = DateTime.Now,

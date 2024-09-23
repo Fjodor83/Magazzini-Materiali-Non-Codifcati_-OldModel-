@@ -7,10 +7,10 @@ namespace MagazziniMaterialiAPI.Repositories
     {
         Movimentazione GetById(int id);
         IEnumerable<Movimentazione> GetAll();
-        IEnumerable<Movimentazione> GetByMaterialeId(int materialeId);
+        IEnumerable<Movimentazione> GetByMaterialeId(string codiceMateriale);
         void Add(Movimentazione movimentazione);
         void Delete(int id);
         void Update(Movimentazione movimentazione);
-        bool EsisteMovimentazioneSuccessiva(int materialeId, DateTime dataMovimentazione);
+        bool EsisteMovimentazioneSuccessiva(string codiceMateriale, DateTime dataMovimentazione);
     }
 }
